@@ -4,7 +4,7 @@ This is an implementation of [FLAN-T5](https://huggingface.co/docs/transformers/
 
 First, download the pre-trained weights:
 
-    cog run script/download-weights 
+    cog run script/download-weights.py
 
 Then you can generate text based on input prompts:
 
