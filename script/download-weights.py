@@ -11,5 +11,5 @@ if os.path.exists(CACHE_DIR):
 
 os.makedirs(CACHE_DIR)
 
-model = T5ForConditionalGeneration.from_pretrained("humarin/chatgpt_paraphraser_on_T5_base", cache_dir=CACHE_DIR)
-tokenizer = T5Tokenizer.from_pretrained("humarin/chatgpt_paraphraser_on_T5_base", cache_dir=CACHE_DIR)
+model = T5ForConditionalGeneration.from_pretrained("mrm8488/t5-base-finetuned-summarize-news", cache_dir=CACHE_DIR)
+tokenizer = T5Tokenizer.from_pretrained("mrm8488/t5-base-finetuned-summarize-news", cache_dir=CACHE_DIR)

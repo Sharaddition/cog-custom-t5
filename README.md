@@ -1,6 +1,6 @@
-# FLAN-T5 Cog model
+# Custom T5 Cog model
 
-This is an implementation of [FLAN-T5](https://huggingface.co/docs/transformers/model_doc/flan-t5) as a Cog model. [Cog packages machine learning models as standard containers.](https://github.com/replicate/cog)
+This is an implementation of [T5-Base](https://huggingface.co/docs/transformers/model_doc/t5) as a Cog model. [Cog packages machine learning models as standard containers.](https://github.com/replicate/cog)
 
 First, install cog in codespace:
 
