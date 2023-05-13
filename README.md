@@ -2,7 +2,11 @@
 
 This is an implementation of [FLAN-T5](https://huggingface.co/docs/transformers/model_doc/flan-t5) as a Cog model. [Cog packages machine learning models as standard containers.](https://github.com/replicate/cog)
 
-First, download the pre-trained weights:
+First, install cog in codespace:
+
+    curl https://replicate.github.io/codespaces/scripts/install-cog.sh | bash
+
+Next, download the pre-trained weights:
 
     cog run script/download-weights.py
 
