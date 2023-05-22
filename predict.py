@@ -1,6 +1,6 @@
 from typing import List, Optional
 from cog import BasePredictor, Input
-from transformers import T5ForConditionalGeneration, T5Tokenizer
+from transformers import T5ForConditionalGeneration, T5Tokenizer, pipeline
 import torch
 
 MODEL_ID = "mrm8488/t5-base-finetuned-summarize-news"
@@ -13,6 +13,8 @@ class Predictor(BasePredictor):
         self.model = T5ForConditionalGeneration.from_pretrained(MODEL_ID, cache_dir=CACHE_DIR, local_files_only=True)
         self.model.to(self.device)
         self.tokenizer = T5Tokenizer.from_pretrained(MODEL_ID, cache_dir=CACHE_DIR, local_files_only=True)
+        self.pipe = pipeline("text2text-generation", model=self.model, tokenizer=self.tokenizer)
+
 
     def predict(
         self,
@@ -20,27 +22,28 @@ class Predictor(BasePredictor):
         max_length: int = Input(
             description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
             ge=1,
-            default=50
+            default=180,
         ),
         temperature: float = Input(
             description="Adjusts randomness of outputs, greater than 1 is random and 0 is deterministic, 0.75 is a good starting value.",
             ge=0.01,
             le=5,
-            default=0.75,
+            default=0.7,
         ),
-        top_p: float = Input(
-            description="When decoding text, samples from the top p percentage of most likely tokens; lower to ignore less likely tokens",
-            ge=0.01,
-            le=1.0,
-            default=1.0
-        ),
+        # top_p: float = Input(
+        #     description="When decoding text, samples from the top p percentage of most likely tokens; lower to ignore less likely tokens",
+        #     ge=0.01,
+        #     le=1.0,
+        #     default=1.0
+        # ),
         num_return_sequences: int = Input(description="Maximum number of output sequences to generate", default=1, ge=1, le=5),
-        repetition_penalty: float = Input(
-            description="Penalty for repeated words in generated text; 1 is no penalty, values greater than 1 discourage repetition, less than 1 encourage it.",
-            ge=0.01,
-            le=15,
-            default=10.0
-        ),
+        num_beams: int = Input(description="Maximum number of output sequences to generate", default=3, ge=1, le=5),
+        # repetition_penalty: float = Input(
+        #     description="Penalty for repeated words in generated text; 1 is no penalty, values greater than 1 discourage repetition, less than 1 encourage it.",
+        #     ge=0.01,
+        #     le=15,
+        #     default=10.0
+        # ),
         diversity_penalty: float = Input(
             description="Penalty for repeated words in generated text; 1 is no penalty, values greater than 1 discourage repetition, less than 1 encourage it.",
             ge=0.01,
@@ -54,18 +57,30 @@ class Predictor(BasePredictor):
             default=2
         )
         ) -> List[str]:
-        input = self.tokenizer("summarization: "+prompt, return_tensors="pt").input_ids.to(self.device)
+        # input = self.tokenizer("summarization: "+prompt, return_tensors="pt").input_ids.to(self.device)
+        input = "paraphrase: " + prompt
 
-        outputs = self.model.generate(
+        generated = self.pipe(
             input,
             max_length=max_length,
             temperature=temperature,
-            top_p=top_p,
+            top_p=1.0,
             num_return_sequences=num_return_sequences,
-            repetition_penalty=repetition_penalty,
+            num_beams=num_beams,
+            num_beam_groups=num_beams,
+            repetition_penalty=10.1,
             diversity_penalty=diversity_penalty,
             no_repeat_ngram_size=no_repeat_ngram_size
         )
-        out = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
-        return out
+
+        # outputs = self.model.generate(
+            
+        # )
+        # out = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
+
+        prediction = []
+        for res in generated:
+            prediction.append(res['generated_text'])
+        
+        return prediction
         
