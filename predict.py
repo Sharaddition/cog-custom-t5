@@ -1,16 +1,17 @@
+import torch
 from typing import List, Optional
 from cog import BasePredictor, Input
-from transformers import T5ForConditionalGeneration, T5Tokenizer, pipeline
-import torch
+from transformers import T5Tokenizer, pipeline
+from optimum.onnxruntime import ORTModelForSeq2SeqLM
 
-MODEL_ID = "mrm8488/t5-base-finetuned-summarize-news"
+MODEL_ID = "sharad/PP-ONNX-QNTZ"
 CACHE_DIR = 'weights'
 SEP = "<sep>"
 
 class Predictor(BasePredictor):
     def setup(self):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.model = T5ForConditionalGeneration.from_pretrained(MODEL_ID, cache_dir=CACHE_DIR, local_files_only=True)
+        self.model = ORTModelForSeq2SeqLM.from_pretrained(MODEL_ID, cache_dir=CACHE_DIR, local_files_only=True)
         self.model.to(self.device)
         self.tokenizer = T5Tokenizer.from_pretrained(MODEL_ID, cache_dir=CACHE_DIR, local_files_only=True)
         self.pipe = pipeline("text2text-generation", model=self.model, tokenizer=self.tokenizer)
@@ -24,12 +25,12 @@ class Predictor(BasePredictor):
             ge=1,
             default=180,
         ),
-        temperature: float = Input(
-            description="Adjusts randomness of outputs, greater than 1 is random and 0 is deterministic, 0.75 is a good starting value.",
-            ge=0.01,
-            le=5,
-            default=0.7,
-        ),
+        # temperature: float = Input(
+        #     description="Adjusts randomness of outputs, greater than 1 is random and 0 is deterministic, 0.75 is a good starting value.",
+        #     ge=0.01,
+        #     le=5,
+        #     default=0.7,
+        # ),
         # top_p: float = Input(
         #     description="When decoding text, samples from the top p percentage of most likely tokens; lower to ignore less likely tokens",
         #     ge=0.01,
@@ -37,18 +38,18 @@ class Predictor(BasePredictor):
         #     default=1.0
         # ),
         num_return_sequences: int = Input(description="Maximum number of output sequences to generate", default=1, ge=1, le=5),
-        num_beams: int = Input(description="Maximum number of output sequences to generate", default=3, ge=1, le=5),
-        # repetition_penalty: float = Input(
-        #     description="Penalty for repeated words in generated text; 1 is no penalty, values greater than 1 discourage repetition, less than 1 encourage it.",
-        #     ge=0.01,
-        #     le=15,
-        #     default=10.0
-        # ),
+        num_beams: int = Input(description="Maximum number of output sequences to generate", default=2, ge=1, le=5),
+        repetition_penalty: float = Input(
+            description="Penalty for repeated words in generated text; 1 is no penalty, values greater than 1 discourage repetition, less than 1 encourage it.",
+            ge=0.01,
+            le=15,
+            default=0.99
+        ),
         diversity_penalty: float = Input(
             description="Penalty for repeated words in generated text; 1 is no penalty, values greater than 1 discourage repetition, less than 1 encourage it.",
             ge=0.01,
             le=5,
-            default=3.0
+            default=2.0
         ),
         no_repeat_ngram_size: int = Input(
             description="No repeat n_gram size.",
@@ -63,12 +64,10 @@ class Predictor(BasePredictor):
         generated = self.pipe(
             input,
             max_length=max_length,
-            temperature=temperature,
-            top_p=1.0,
-            num_return_sequences=num_return_sequences,
             num_beams=num_beams,
             num_beam_groups=num_beams,
-            repetition_penalty=10.1,
+            num_return_sequences=num_return_sequences,
+            repetition_penalty=repetition_penalty,
             diversity_penalty=diversity_penalty,
             no_repeat_ngram_size=no_repeat_ngram_size
         )

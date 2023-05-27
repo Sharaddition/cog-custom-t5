@@ -5,9 +5,10 @@ build:
   gpu: false
   python_version: "3.10"
   python_packages:
-    - "torch"
+    - "optimum"
+    - "onnxruntime"
+    - "accelerate"
     - "transformers"
     - "sentencepiece"
-    - "accelerate"
 
 predict: "predict.py:Predictor"
