@@ -1,5 +1,5 @@
 import torch
-from typing import List, Optional
+from typing import List
 from cog import BasePredictor, Input
 from transformers import T5Tokenizer, pipeline
 from optimum.onnxruntime import ORTModelForSeq2SeqLM
@@ -20,11 +20,11 @@ class Predictor(BasePredictor):
     def predict(
         self,
         prompt: str = Input(description=f"Prompt to send to your T5 model."),
-        max_length: int = Input(
-            description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
-            ge=1,
-            default=180,
-        ),
+        # max_length: int = Input(
+        #     description="Maximum number of tokens to generate. A word is generally 2-3 tokens",
+        #     ge=1,
+        #     default=180,
+        # ),
         # temperature: float = Input(
         #     description="Adjusts randomness of outputs, greater than 1 is random and 0 is deterministic, 0.75 is a good starting value.",
         #     ge=0.01,
@@ -59,11 +59,12 @@ class Predictor(BasePredictor):
         )
         ) -> List[str]:
         # input = self.tokenizer("summarization: "+prompt, return_tensors="pt").input_ids.to(self.device)
-        input = "paraphrase: " + prompt
+        input   = "paraphrase: " + prompt
+        max_len = len(prompt)
 
         generated = self.pipe(
             input,
-            max_length=max_length,
+            max_length=max_len,
             num_beams=num_beams,
             num_beam_groups=num_beams,
             num_return_sequences=num_return_sequences,

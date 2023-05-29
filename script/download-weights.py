@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import torch
 import shutil
 from transformers import T5Tokenizer
 from optimum.onnxruntime import ORTModelForSeq2SeqLM
